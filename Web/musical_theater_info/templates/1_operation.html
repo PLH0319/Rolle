@@ -1,0 +1,216 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Operation Page</title>
+    <!-- Add any necessary CSS or JS links here -->
+    <script src="{% static 'js/tablefilter.js'%}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/tablefilter.css'%}">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Operation Page</h1>
+    
+    <!-- Delete Data Button -->
+    <form id="deleteForm">
+        <input type="hidden" name="data_id" value="1"> <!-- Example: Replace with actual data ID -->
+        <button type="button" onclick="deleteData()">Delete Data</button>
+    </form>
+    
+    
+    <!-- Modify Data Button -->
+    <form id="modifyForm">
+        <input type="hidden" name="data_id" value="1"> <!-- Example: Replace with actual data ID -->
+        <input type="text" name="new_data" placeholder="New Data">
+        <button type="button" onclick="modifyData()">Modify Data</button>
+    </form>
+
+    <!-- Query Data Button -->
+    <button type="button" onclick="queryData()">Query Data</button>
+    <div id='table-container'>
+        <table id="t1">
+            <thead>
+                <tr>
+                    <th>UID</th>
+                    <th>title</th>
+                    <th>startDate</th>
+                    <th>endDate</th>
+                </tr>
+            </thead>
+            <tbody class="t1-body">
+                {% for activity in Activities %}
+                <tr>
+                    <td>{{ activity.UID }}</td>
+                    <td>{{ activity.title }}</td>
+                    <td>{{ activity.startDate }}</td>
+                    <td>{{ activity.endDate }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+
+
+
+
+
+
+    <!-- Script section for AJAX calls -->
+    <script>
+        // AJAX functions to interact with backend APIs
+
+        // Function to delete data
+        function deleteData() {
+            fetch('../api/delete/', {
+                method: 'POST',
+                body: new FormData(document.getElementById('deleteForm'))
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data);
+                // Refresh or update UI as needed
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Function to modify data
+        function modifyData() {
+            fetch('../api/modify/', {
+                method: 'POST',
+                body: new FormData(document.getElementById('modifyForm'))
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                // Refresh or update UI as needed
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+document.querySelector('.t1')
+    <!-- TableFilter -->
+    <script>
+        function filter(){
+            console.log(2)
+            var tf = new TableFilter(document.querySelector('#t1'), {
+            alternate_rows: true,
+            rows_counter: true,
+            status_bar: true,
+            col_widths: [
+                "250px", "750px", "200px",
+                "200px"
+            ],
+            col_types: [
+                'string', 'string', 
+                { type: 'date', locale: 'en', format: ['{yyyy|yy}-{months}-{dd}'] },
+                { type: 'date', locale: 'en', format: ['{yyyy|yy}-{months}-{dd}'] },
+            ],
+        });
+        tf.init();
+        }
+    </script>
+
+<script>
+    const createTableFromObjectArray = (data, containerRef, tableRef) => {
+        // elements
+        let container = document.getElementById(containerRef);
+        let table = document.createElement('table');
+        table.setAttribute('id', tableRef);
+        
+        // clear the DOM if the table is already present
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
+
+        // create header
+        let header = document.createElement('thead');
+        let headerRow = document.createElement('tr');
+        const colNames = Object.keys(data[0]);
+        colNames.forEach(name => {
+            let headerCell = document.createElement('th');
+            let headerText = document.createTextNode(name);
+            headerCell.appendChild(headerText);
+            headerRow.append(headerCell);
+        });
+        header.appendChild(headerRow)
+        table.appendChild(header);
+
+        // add rows to table
+        let tbody = document.createElement('tbody');
+        data.forEach(doc => {
+            let tbodyRow = document.createElement('tr');
+            Object.values(doc).forEach(value => {
+                let rowCell = document.createElement('td');
+                let cellText = document.createTextNode(value);
+                rowCell.appendChild(cellText);
+                tbodyRow.appendChild(rowCell);
+            });
+            tbody.appendChild(tbodyRow);
+        });
+        table.appendChild(tbody);
+
+        // add table to DOM and add filters
+        container.appendChild(table);
+    }
+
+const renderTable = (data) => {
+    const containerRef = 'table-container';
+    const tableRef = 't1';
+    createTableFromObjectArray(data, containerRef, tableRef);
+    console.log(1)
+}    
+</script>
+
+    <script>
+    // Function to query data
+    // 點擊按鈕後觸發 Ajax 請求
+    function queryData() {
+        $.ajax({
+            type: 'GET', 
+            url: '{% url "query_data" %}',  
+            success: async function(data) {
+                // 更新成功後更新資料表格
+                var postsTableBody = $('.t1-body');
+                postsTableBody.empty();  // 清空原有資料
+                var postsTable = $('.t1');
+                // postsTable.empty()
+                // 逐個添加更新後的資料
+                renderTable(data)
+            await filter();
+
+            },
+            error: function(xhr, status, error) {
+                // 處理錯誤情況
+                console.error('Ajax request failed: ' + status + ', ' + error);
+            }
+        });
+    };
+    </script>
+
+
+
+
+</body>
+</html>

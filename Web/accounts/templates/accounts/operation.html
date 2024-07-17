@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Operation Page</title>
+    <!-- Add any necessary CSS or JS links here -->
+</head>
+<body>
+    <h1>Operation Page</h1>
+    
+    <!-- Delete Data Button -->
+    <form id="deleteForm">
+        <input type="hidden" name="data_id" value="1"> <!-- Example: Replace with actual data ID -->
+        <button type="button" onclick="deleteData()">Delete Data</button>
+    </form>
+    
+    <!-- Query Data Button -->
+    <button type="button" onclick="queryData()">Query Data</button>
+    
+    <!-- Modify Data Button -->
+    <form id="modifyForm">
+        <input type="hidden" name="data_id" value="1"> <!-- Example: Replace with actual data ID -->
+        <input type="text" name="new_data" placeholder="New Data">
+        <button type="button" onclick="modifyData()">Modify Data</button>
+    </form>
+
+    <!-- Script section for AJAX calls -->
+    <script>
+        // AJAX functions to interact with backend APIs
+
+        // Function to delete data
+        function deleteData() {
+            fetch('/api/delete/', {
+                method: 'POST',
+                body: new FormData(document.getElementById('deleteForm'))
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                // Refresh or update UI as needed
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Function to query data
+        function queryData() {
+            fetch('/api/query/')
+            .then(response => response.json())
+            .then(data => {
+                alert('Query result: ' + JSON.stringify(data.result));
+                // Display or process query result as needed
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Function to modify data
+        function modifyData() {
+            fetch('/api/modify/', {
+                method: 'POST',
+                body: new FormData(document.getElementById('modifyForm'))
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                // Refresh or update UI as needed
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
