@@ -27,27 +27,32 @@
 </head>
 <body>
     <h1>Operation Page</h1>
-    
+    <input type="hidden" name="activity_id"> <!-- Example: Replace with actual data ID -->
     <!-- Delete Data Button -->
     <form id="deleteForm">
-        <input type="hidden" name="data_id" value="1"> <!-- Example: Replace with actual data ID -->
+        <input type="text" name="show_id" placeholder="Show ID" required>
         <button type="button" onclick="deleteData()">Delete Data</button>
     </form>
     
     
     <!-- Modify Data Button -->
     <form id="modifyForm">
-        <input type="hidden" name="data_id" value="1"> <!-- Example: Replace with actual data ID -->
-        <input type="text" name="new_data" placeholder="New Data">
+        <input type="text" name="show_id" placeholder="Show ID" required>
+        <input type="text" name="price" placeholder="price" required>
         <button type="button" onclick="modifyData()">Modify Data</button>
     </form>
 
     <!-- Query Data Button -->
+    <input type="text" name="input_id" placeholder="input id">
     <button type="button" onclick="queryData()">Query Data</button>
+    <button type="button" onclick="resetTable()">Reset</button>
+
+    
     <div id='table-container'>
         <table id="t1">
             <thead>
                 <tr>
+                    <th>id</th>
                     <th>UID</th>
                     <th>title</th>
                     <th>startDate</th>
@@ -57,6 +62,7 @@
             <tbody class="t1-body">
                 {% for activity in Activities %}
                 <tr>
+                    <td>{{ activity.id }}</td>
                     <td>{{ activity.UID }}</td>
                     <td>{{ activity.title }}</td>
                     <td>{{ activity.startDate }}</td>
@@ -79,57 +85,80 @@
 
         // Function to delete data
         function deleteData() {
-            fetch('../api/delete/', {
-                method: 'POST',
-                body: new FormData(document.getElementById('deleteForm'))
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data);
-                // Refresh or update UI as needed
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+            let id = $('[name="activity_id"]').val();
+            let show_id = $('#deleteForm').children().eq(0).val()
+
+            $.ajax({
+            type: 'POST', 
+            url: '{% url "delete_data" %}',
+            data: {'id': id, 'show_id': show_id, 'csrfmiddlewaretoken':'{{csrf_token}}'},
+            success: async function(data) {
+                alert(data.message);
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 401) {
+                    alert('Please log in');
+                    // or redirect to login page
+                    window.location.replace('/accounts/login/?next=' + window.location.href);
+                }
+            }
+        });
         }
 
         // Function to modify data
         function modifyData() {
-            fetch('../api/modify/', {
-                method: 'POST',
-                body: new FormData(document.getElementById('modifyForm'))
-            })
-            .then(response => response.json())
-            .then(data => {
+        let id = $('[name="activity_id"]').val();
+        let show_id = $('#modifyForm').children().eq(0).val()
+        let price = $('[name="price"]').val()
+        $.ajax({
+            type: 'POST', 
+            url: '{% url "modify_data" %}',
+            data: {'id': id, 'show_id': show_id, 'price':price, 'csrfmiddlewaretoken':'{{csrf_token}}'},
+            success: async function(data) {
                 alert(data.message);
-                // Refresh or update UI as needed
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
+            },
+            error: function(xhr, status, error) {
+                // 處理錯誤情況
+                if (xhr.status === 401) {
+                    alert('Please log in');
+                    // or redirect to login page
+                    window.location.replace('/accounts/login/?next=' + window.location.href);
+                }
+            }
+        });
+    };
     </script>
-document.querySelector('.t1')
     <!-- TableFilter -->
     <script>
-        function filter(){
-            console.log(2)
-            var tf = new TableFilter(document.querySelector('#t1'), {
+        function filter(FilterConfig){
+        var tf = new TableFilter(document.querySelector('#t1'), FilterConfig);
+        tf.init();
+        }
+
+        
+        let FilterConfig = {
             alternate_rows: true,
             rows_counter: true,
             status_bar: true,
+            paging: {
+            results_per_page: ['Records: ', [10, 25, 50, 100, 200]]
+            },
+
+            
+            headers_row_index: 0,
+            filters_row_index: 1,		
+            mark_active_columns: true,  
             col_widths: [
-                "250px", "750px", "200px",
+                "100px","250px", "750px", "200px",
                 "200px"
             ],
             col_types: [
-                'string', 'string', 
+            'number','string', 'string', 
                 { type: 'date', locale: 'en', format: ['{yyyy|yy}-{months}-{dd}'] },
                 { type: 'date', locale: 'en', format: ['{yyyy|yy}-{months}-{dd}'] },
             ],
-        });
-        tf.init();
         }
+        filter(FilterConfig)
     </script>
 
 <script>
@@ -179,17 +208,25 @@ const renderTable = (data) => {
     const containerRef = 'table-container';
     const tableRef = 't1';
     createTableFromObjectArray(data, containerRef, tableRef);
-    console.log(1)
 }    
 </script>
 
     <script>
+    function resetTable(){
+        window.location.reload()
+    }
+
+
+
     // Function to query data
     // 點擊按鈕後觸發 Ajax 請求
     function queryData() {
+        let id = $('[name="input_id"]').val()
+
         $.ajax({
             type: 'GET', 
-            url: '{% url "query_data" %}',  
+            url: '{% url "query_data" %}',
+            data: {'id': id},
             success: async function(data) {
                 // 更新成功後更新資料表格
                 var postsTableBody = $('.t1-body');
@@ -198,8 +235,33 @@ const renderTable = (data) => {
                 // postsTable.empty()
                 // 逐個添加更新後的資料
                 renderTable(data)
-            await filter();
+            
+        
+            let FilterConfig = {
+                alternate_rows: true,
+                rows_counter: true,
+                status_bar: true,
+                paging: {
+                results_per_page: ['Records: ', [10, 25, 50, 100, 200]]
+                },
 
+                
+                headers_row_index: 0,
+                filters_row_index: 1,		
+                mark_active_columns: true,  
+                col_widths: [
+                    "100px","100px","100px", "200px", "200px","200px","200px"
+                ],
+                col_types: [
+                    'number','number','number',
+                    { type: 'date', locale: 'en', format: ['{yyyy|yy}-{months}-{dd}'] },
+                    ,'string', 'string', 
+                
+                    { type: 'date', locale: 'en', format: ['{yyyy|yy}-{months}-{dd}'] },
+                ],
+            }
+            await filter(FilterConfig);
+            $('[name="activity_id"]').attr('value', id);
             },
             error: function(xhr, status, error) {
                 // 處理錯誤情況
