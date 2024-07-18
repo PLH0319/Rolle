@@ -28,12 +28,24 @@ class ModelActivity(models.Model):
         # 設定資料表格名稱，如果資料庫中表格名稱與 Django 慣例不同，可以在這裡指定
         db_table = 'musicial_activity'
 
+class ModelLocation(models.Model):
+    # 定義模型欄位，與現有資料表格對應
+    id = models.IntegerField(primary_key=True)
+    location = models.CharField(max_length=255)
+    locationName = models.CharField(max_length=255)
+    latitude = models.IntegerField()
+    longitude = models.IntegerField()
+
+    class Meta:
+        # 設定資料表格名稱，如果資料庫中表格名稱與 Django 慣例不同，可以在這裡指定
+        db_table = 'musicial_location'
+
 
 class ModelShowInfo(models.Model):
     # 定義模型欄位，與現有資料表格對應
     id = models.IntegerField(primary_key=True)
-    activity_id = models.IntegerField()
-    location_id = models.IntegerField() 
+    activity = models.ForeignKey(ModelActivity, on_delete=models.CASCADE)
+    location = models.ForeignKey(ModelLocation, on_delete=models.PROTECT)
     time = models.DateTimeField()
     onSales = models.CharField(max_length=255)
     price = models.CharField(max_length=255)
@@ -42,3 +54,4 @@ class ModelShowInfo(models.Model):
     class Meta:
         # 設定資料表格名稱，如果資料庫中表格名稱與 Django 慣例不同，可以在這裡指定
         db_table = 'musicial_showinfo'
+

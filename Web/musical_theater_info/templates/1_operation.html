@@ -250,14 +250,15 @@ const renderTable = (data) => {
                 filters_row_index: 1,		
                 mark_active_columns: true,  
                 col_widths: [
-                    "100px","100px","100px", "200px", "200px","200px","200px"
+                    "75px","250px","300px", "100px", "100px","200px","200px","200px","350px"
                 ],
                 col_types: [
-                    'number','number','number',
+                    'number','string','string',
+                    ,'string', 'string', 
+                    { type: 'date', locale: 'en', format: ['{yyyy|yy}-{months}-{dd}'] },
                     { type: 'date', locale: 'en', format: ['{yyyy|yy}-{months}-{dd}'] },
                     ,'string', 'string', 
-                
-                    { type: 'date', locale: 'en', format: ['{yyyy|yy}-{months}-{dd}'] },
+
                 ],
             }
             await filter(FilterConfig);

@@ -1,6 +1,5 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import HttpResponse
 from django.views.generic import TemplateView
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .models import ModelActivity, ModelShowInfo
 
@@ -40,8 +39,10 @@ def query_data(request):
     if request.method == 'GET':
         # Your query logic here
         id = int(request.GET.get('id'))
-        ShowInfo = ModelShowInfo.objects.filter(activity_id=id)
-        ShowInfo = list(ShowInfo.values())
+        ShowInfo = ModelShowInfo.objects.filter(activity=id)
+        ShowInfo = list(ShowInfo.values('id','activity__UID','activity__title','onSales',
+                                        'price','time','endTime','location__locationName',
+                                        'location__location'))
 
         for item in ShowInfo:
             endtime = item['endTime']
