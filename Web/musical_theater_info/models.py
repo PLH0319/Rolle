@@ -27,3 +27,18 @@ class ModelActivity(models.Model):
     class Meta:
         # 設定資料表格名稱，如果資料庫中表格名稱與 Django 慣例不同，可以在這裡指定
         db_table = 'musicial_activity'
+
+
+class ModelShowInfo(models.Model):
+    # 定義模型欄位，與現有資料表格對應
+    id = models.IntegerField(primary_key=True)
+    activity_id = models.IntegerField()
+    location_id = models.IntegerField() 
+    time = models.DateTimeField()
+    onSales = models.CharField(max_length=255)
+    price = models.CharField(max_length=255)
+    endTime = models.DateTimeField(max_length=255)
+
+    class Meta:
+        # 設定資料表格名稱，如果資料庫中表格名稱與 Django 慣例不同，可以在這裡指定
+        db_table = 'musicial_showinfo'
